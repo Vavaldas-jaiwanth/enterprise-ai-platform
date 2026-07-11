@@ -1,0 +1,1760 @@
+openapi: 3.1.0
+
+info:
+  title: Enterprise AI Knowledge Platform API
+  version: 1.0.0
+  description: |
+    Enterprise AI Knowledge Platform
+
+    Phase 1 - Platform Foundation
+
+    This specification defines the REST APIs for:
+
+      • Authentication
+      • User Management
+      • Departments
+      • Workspaces
+      • Workspace Membership
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Development
+
+  - url: https://dev.enterprise-ai.com/api/v1
+    description: Development
+
+  - url: https://api.enterprise-ai.com/api/v1
+    description: Production
+
+tags:
+
+  - name: Authentication
+    description: Authentication and JWT operations
+
+  - name: Users
+    description: User management
+
+  - name: Departments
+    description: Department management
+
+  - name: Workspaces
+    description: Workspace management
+
+  - name: Workspace Members
+    description: Workspace membership management
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  /auth/login:
+
+    post:
+
+      tags:
+        - Authentication
+
+      summary: Authenticate user
+
+      description: Returns JWT access token and refresh token.
+
+      security: []
+
+      operationId: login
+
+      requestBody:
+
+        required: true
+
+        content:
+
+          application/json:
+
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+
+            example:
+
+              email: jai@example.com
+              password: Password@123
+
+      responses:
+
+        '200':
+
+          description: Login successful
+
+          content:
+
+            application/json:
+
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+
+    post:
+
+      tags:
+        - Authentication
+
+      summary: Refresh Access Token
+
+      security: []
+
+      operationId: refreshToken
+
+      requestBody:
+
+        required: true
+
+        content:
+
+          application/json:
+
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+
+      responses:
+
+        '200':
+
+          description: Token refreshed successfully
+
+          content:
+
+            application/json:
+
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+
+    post:
+
+      tags:
+        - Authentication
+
+      summary: Logout
+
+      operationId: logout
+
+      requestBody:
+
+        required: true
+
+        content:
+
+          application/json:
+
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+
+      responses:
+
+        '204':
+
+          description: Logged out successfully
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+
+    get:
+
+      tags:
+        - Authentication
+
+      summary: Get current authenticated user
+
+      operationId: me
+
+      responses:
+
+        '200':
+
+          description: Current user
+
+          content:
+
+            application/json:
+
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /users:
+
+    post:
+
+      tags:
+        - Users
+
+      summary: Create a new employee
+
+      description: |
+        Creates a new employee account.
+        A temporary password is automatically generated.
+        Only SUPER_ADMIN can perform this operation.
+
+      operationId: createUser
+
+      security:
+        - bearerAuth: []
+
+      requestBody:
+
+        required: true
+
+        content:
+
+          application/json:
+
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+
+      responses:
+
+        '201':
+
+          description: User created successfully
+
+          content:
+
+            application/json:
+
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    get:
+
+      tags:
+        - Users
+
+      summary: Search users
+
+      description: Returns a paginated list of users.
+
+      operationId: searchUsers
+
+      parameters:
+
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 0
+
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 20
+
+        - in: query
+          name: sort
+          schema:
+            type: string
+            example: firstName,asc
+
+        - in: query
+          name: search
+          schema:
+            type: string
+
+        - in: query
+          name: departmentId
+          schema:
+            format: uuid
+            type: string
+
+        - in: query
+          name: enabled
+          schema:
+            type: boolean
+
+        - in: query
+          name: mustChangePassword
+          schema:
+            type: boolean
+      responses:
+
+        '200':
+
+          description: Users retrieved successfully
+
+          content:
+
+            application/json:
+
+              schema:
+                $ref: '#/components/schemas/UserPage'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{userId}:
+
+    get:
+
+      tags:
+        - Users
+
+      summary: Get user by ID
+
+      operationId: getUser
+
+      parameters:
+
+        - $ref: '#/components/parameters/UserId'
+
+      responses:
+
+        '200':
+
+          description: User found
+
+          content:
+
+            application/json:
+
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{userId}/enable:
+
+    patch:
+
+      tags:
+        - Users
+
+      summary: Enable user
+
+      operationId: enableUser
+
+      parameters:
+
+        - $ref: '#/components/parameters/UserId'
+
+      responses:
+
+        '204':
+
+          description: User enabled
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{userId}/disable:
+
+    patch:
+
+      tags:
+        - Users
+
+      summary: Disable user
+
+      operationId: disableUser
+
+      parameters:
+
+        - $ref: '#/components/parameters/UserId'
+
+      responses:
+
+        '204':
+
+          description: User disabled
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /auth/change-password:
+    put:
+      tags:
+        - Authentication
+      summary: Change password
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldPassword
+                - newPassword
+              properties:
+                oldPassword:
+                  type: string
+                  format: password
+                newPassword:
+                  type: string
+                  format: password
+            example:
+              oldPassword: Temp@123
+              newPassword: MyStrongPassword@123
+      responses:
+        '204':
+          description: Password changed successfully
+        '400':
+          '$ref': '#/components/responses/ValidationError'
+        '401':
+          '$ref': '#/components/responses/Unauthorized'
+  /users/{userId}/profile:
+    patch:
+      tags:
+        - Users
+      summary: Update user profile
+      operationId: updateUserProfile
+      parameters:
+        - '$ref': '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/UserResponse'
+        '400':
+          '$ref': '#/components/responses/ValidationError'
+        '404':
+          '$ref': '#/components/responses/NotFound'
+  /users/{userId}/department:
+    patch:
+      tags:
+        - Users
+      summary: Update user department
+      operationId: updateUserDepartment
+      parameters:
+        - '$ref': '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - departmentId
+              properties:
+                departmentId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Department updated
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/UserResponse'
+        '400':
+          '$ref': '#/components/responses/ValidationError'
+        '404':
+          '$ref': '#/components/responses/NotFound'
+  /users/{userId}/roles:
+    patch:
+      tags:
+        - Users
+      summary: Update user roles
+      operationId: updateUserRoles
+      parameters:
+        - '$ref': '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - roles
+              properties:
+                roles:
+                  type: array
+                  items:
+                    '$ref': '#/components/schemas/UserRole'
+      responses:
+        '200':
+          description: Roles updated
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/UserResponse'
+        '400':
+          '$ref': '#/components/responses/ValidationError'
+        '404':
+          '$ref': '#/components/responses/NotFound'
+  /departments:
+    post:
+      tags:
+        - Departments
+      summary: Create a new department
+      operationId: createDepartment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              '$ref': '#/components/schemas/DepartmentRequest'
+            example:
+              name: Engineering
+              description: Engineering Department
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/DepartmentResponse'
+        '400':
+          '$ref': '#/components/responses/ValidationError'
+        '401':
+          '$ref': '#/components/responses/Unauthorized'
+        '403':
+          '$ref': '#/components/responses/Forbidden'
+        '409':
+          description: Department already exists
+          content:
+            application/problem+json:
+              schema:
+                '$ref': '#/components/schemas/ProblemDetails'
+    get:
+      tags:
+        - Departments
+      summary: List departments
+      operationId: listDepartments
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 0
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: sort
+          schema:
+            type: string
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: active
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of departments
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/DepartmentPage'
+        '401':
+          '$ref': '#/components/responses/Unauthorized'
+  /departments/{departmentId}:
+    get:
+      tags:
+        - Departments
+      summary: Get department
+      operationId: getDepartment
+      parameters:
+        - '$ref': '#/components/parameters/DepartmentId'
+      responses:
+        '200':
+          description: Department details
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/DepartmentResponse'
+        '401':
+          '$ref': '#/components/responses/Unauthorized'
+        '404':
+          '$ref': '#/components/responses/NotFound'
+    put:
+      tags:
+        - Departments
+      summary: Update department
+      operationId: updateDepartment
+      parameters:
+        - '$ref': '#/components/parameters/DepartmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              '$ref': '#/components/schemas/DepartmentRequest'
+            example:
+              name: Engineering
+              description: Updated description
+      responses:
+        '200':
+          description: Department updated
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/DepartmentResponse'
+        '400':
+          '$ref': '#/components/responses/ValidationError'
+        '401':
+          '$ref': '#/components/responses/Unauthorized'
+        '403':
+          '$ref': '#/components/responses/Forbidden'
+        '404':
+          '$ref': '#/components/responses/NotFound'
+  /departments/{departmentId}/enable:
+    patch:
+      tags:
+        - Departments
+      summary: Enable department
+      operationId: enableDepartment
+      parameters:
+        - '$ref': '#/components/parameters/DepartmentId'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          '$ref': '#/components/responses/Unauthorized'
+        '403':
+          '$ref': '#/components/responses/Forbidden'
+        '404':
+          '$ref': '#/components/responses/NotFound'
+  /departments/{departmentId}/disable:
+    patch:
+      tags:
+        - Departments
+      summary: Disable department
+      description: A disabled department cannot receive new employees. Existing 
+        employees remain assigned.
+      operationId: disableDepartment
+      parameters:
+        - '$ref': '#/components/parameters/DepartmentId'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          '$ref': '#/components/responses/Unauthorized'
+        '403':
+          '$ref': '#/components/responses/Forbidden'
+        '404':
+          '$ref': '#/components/responses/NotFound'
+  /departments/{departmentId}/users:
+    get:
+      tags:
+        - Departments
+      summary: List department employees
+      operationId: listDepartmentEmployees
+      parameters:
+        - '$ref': '#/components/parameters/DepartmentId'
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 0
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: enabled
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/UserPage'
+        '401':
+          '$ref': '#/components/responses/Unauthorized'
+        '404':
+          '$ref': '#/components/responses/NotFound'
+  /workspaces:
+    post:
+      tags:
+        - Workspaces
+      summary: Create a new workspace
+      operationId: createWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+            example:
+              name: AI Platform
+              description: Enterprise AI Knowledge Platform
+              isPublic: false
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      tags:
+        - Workspaces
+      summary: List workspaces
+      operationId: listWorkspaces
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 0
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: sort
+          schema:
+            type: string
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: active
+          schema:
+            type: boolean
+        - in: query
+          name: isPublic
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of workspaces
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspacePage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /workspaces/{workspaceId}:
+    get:
+      tags:
+        - Workspaces
+      summary: Get workspace details
+      operationId: getWorkspace
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '200':
+          description: Workspace details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Workspaces
+      summary: Update workspace
+      operationId: updateWorkspace
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+            example:
+              name: AI Platform
+              description: Updated description
+              isPublic: false
+      responses:
+        '200':
+          description: Workspace updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /workspaces/{workspaceId}/enable:
+    patch:
+      tags:
+        - Workspaces
+      summary: Enable workspace
+      operationId: enableWorkspace
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /workspaces/{workspaceId}/disable:
+    patch:
+      tags:
+        - Workspaces
+      summary: Disable workspace
+      description: A disabled workspace cannot receive new members or new 
+        documents. Existing data remains intact.
+      operationId: disableWorkspace
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /workspaces/{workspaceId}/members:
+    post:
+      tags:
+        - Workspace Members
+      summary: Add workspace members
+      description: "Add members to the workspace. Supports bulk assignment.\n\n* A
+        user cannot belong to the same workspace twice.\n* Users already belonging
+        to the workspace should be ignored or reported."
+      operationId: addWorkspaceMembers
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceMemberRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberListResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      tags:
+        - Workspace Members
+      summary: List workspace members
+      operationId: listWorkspaceMembers
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 0
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: sort
+          schema:
+            type: string
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: workspaceRole
+          schema:
+            $ref: '#/components/schemas/WorkspaceRole'
+        - in: query
+          name: enabled
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /workspaces/{workspaceId}/members/{userId}:
+    get:
+      tags:
+        - Workspace Members
+      summary: Get workspace member
+      operationId: getWorkspaceMember
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Member details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Workspace Members
+      summary: Remove workspace member
+      description: "Remove a member from the workspace.\n\n* Every workspace must
+        always have at least one ADMIN.\n* The last ADMIN cannot be removed."
+      operationId: removeWorkspaceMember
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /workspaces/{workspaceId}/members/{userId}/role:
+    patch:
+      tags:
+        - Workspace Members
+      summary: Change workspace role
+      description: "Change the role of a workspace member.\n\n* Every workspace must
+        always have at least one ADMIN.\n* The last ADMIN cannot be downgraded."
+      operationId: changeWorkspaceRole
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRoleUpdateRequest'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceMemberResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /workspaces/{workspaceId}/leave:
+    delete:
+      tags:
+        - Workspace Members
+      summary: Leave workspace
+      description: "Current authenticated user leaves the workspace.\n\n* Workspace
+        must always have at least one ADMIN.\n* The last ADMIN cannot leave the workspace."
+      operationId: leaveWorkspace
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+components:
+  securitySchemes:
+
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    ##########################################################
+    # Common Models
+    ##########################################################
+
+    UUID:
+      type: string
+      format: uuid
+      example: "ebeb7b3b-f0e8-4b44-b16d-d5bb3a7b6401"
+
+    Timestamp:
+      type: string
+      format: date-time
+      example: "2026-07-11T09:45:30Z"
+
+    ##########################################################
+    # Pagination
+    ##########################################################
+
+    PageInfo:
+      type: object
+
+      properties:
+
+        page:
+          type: integer
+          minimum: 0
+
+        size:
+          type: integer
+          minimum: 1
+
+        totalElements:
+          type: integer
+
+        totalPages:
+          type: integer
+
+        first:
+          type: boolean
+
+        last:
+          type: boolean
+
+    ##########################################################
+    # Enums
+    ##########################################################
+
+    UserRole:
+
+      type: string
+
+      enum:
+        - SUPER_ADMIN
+        - USER
+
+    WorkspaceRole:
+
+      type: string
+
+      enum:
+        - ADMIN
+        - MEMBER
+
+    ##########################################################
+    # Problem Details (RFC 7807)
+    ##########################################################
+
+    ProblemDetails:
+
+      type: object
+
+      required:
+        - type
+        - title
+        - status
+
+      properties:
+
+        type:
+          type: string
+          format: uri
+
+        title:
+          type: string
+
+        status:
+          type: integer
+
+        detail:
+          type: string
+
+        instance:
+          type: string
+
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+
+        path:
+          type: string
+
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+
+    ##########################################################
+    # Generic Success Message
+    ##########################################################
+
+    ApiMessage:
+
+      type: object
+
+      properties:
+
+        message:
+          type: string
+
+      example:
+
+        message: Operation completed successfully
+
+    ##########################################################
+    # Register
+    ##########################################################
+
+    LoginRequest:
+
+      type: object
+
+      required:
+        - email
+        - password
+
+      properties:
+
+        email:
+
+          type: string
+
+          format: email
+
+        password:
+
+          type: string
+
+          format: password
+
+    ##########################################################
+    # Refresh Token
+    ##########################################################
+
+    RefreshTokenRequest:
+
+      type: object
+
+      required:
+        - refreshToken
+
+      properties:
+
+        refreshToken:
+
+          type: string
+
+    ##########################################################
+    # Logout
+    ##########################################################
+
+    LogoutRequest:
+
+      type: object
+
+      required:
+        - refreshToken
+
+      properties:
+
+        refreshToken:
+
+          type: string
+
+    ##########################################################
+    # Login Response
+    ##########################################################
+
+    LoginResponse:
+
+      type: object
+
+      properties:
+
+        accessToken:
+
+          type: string
+
+        refreshToken:
+
+          type: string
+
+        tokenType:
+
+          type: string
+
+          example: Bearer
+
+        expiresIn:
+
+          type: integer
+
+          example: 900
+
+    ##########################################################
+    # Refresh Response
+    ##########################################################
+
+        mustChangePassword:
+          type: boolean
+    RefreshTokenResponse:
+
+      type: object
+
+      properties:
+
+        accessToken:
+
+          type: string
+
+        tokenType:
+
+          type: string
+
+        expiresIn:
+
+          type: integer
+
+          example: 900
+
+    ##########################################################
+    # User Response
+    ##########################################################
+
+    UserResponse:
+
+      type: object
+
+      properties:
+
+        id:
+
+          type: string
+
+          format: uuid
+
+        firstName:
+
+          type: string
+
+        lastName:
+
+          type: string
+
+        email:
+
+          type: string
+
+        enabled:
+
+          type: boolean
+
+        mustChangePassword:
+
+          type: boolean
+
+        department:
+
+          '$ref': '#/components/schemas/DepartmentSummary'
+        roles:
+
+          type: array
+
+          items:
+
+            $ref: '#/components/schemas/UserRole'
+
+        createdAt:
+
+          $ref: '#/components/schemas/Timestamp'
+
+    ############################################################
+    # Department Summary
+    ############################################################
+
+    CurrentUserResponse:
+
+      type: object
+
+      properties:
+
+        id:
+
+          $ref: '#/components/schemas/UUID'
+
+        firstName:
+
+          type: string
+
+        lastName:
+
+          type: string
+
+        email:
+
+          type: string
+
+        department:
+
+          '$ref': '#/components/schemas/DepartmentSummary'
+        systemRole:
+
+          $ref: '#/components/schemas/UserRole'
+
+        workspaces:
+
+          type: array
+
+          items:
+
+            $ref: '#/components/schemas/UserWorkspace'
+
+    ##########################################################
+    # Workspace Summary
+    ##########################################################
+
+    UserWorkspace:
+
+      type: object
+
+      properties:
+
+        id:
+
+          $ref: '#/components/schemas/UUID'
+
+        name:
+
+          type: string
+
+        workspaceRole:
+
+          $ref: '#/components/schemas/WorkspaceRole'
+
+      
+
+    CreateUserRequest:
+
+      type: object
+
+      required:
+
+        - firstName
+        - lastName
+        - email
+        - departmentId
+
+      properties:
+
+        firstName:
+
+          type: string
+
+          minLength: 2
+
+          maxLength: 50
+
+        lastName:
+
+          type: string
+
+          minLength: 2
+
+          maxLength: 50
+
+        email:
+
+          type: string
+
+          format: email
+
+        departmentId:
+
+          type: string
+
+          format: uuid
+
+    ############################################################
+    # Update User
+    ############################################################
+
+        systemRole:
+          type: string
+          enum:
+            - USER
+            - SUPER_ADMIN
+          default: USER
+    DepartmentSummary:
+
+      type: object
+
+      properties:
+
+        id:
+
+          type: string
+
+          format: uuid
+
+        name:
+
+          type: string
+
+    ############################################################
+    # User Page
+    ############################################################
+
+    UserPage:
+
+      type: object
+
+      properties:
+
+        content:
+
+          type: array
+
+          items:
+
+            $ref: '#/components/schemas/UserResponse'
+
+        page:
+
+          $ref: '#/components/schemas/PageInfo'
+    DocumentStatus:
+      type: string
+      enum:
+        - UPLOADED
+        - PROCESSING
+        - INDEXED
+        - FAILED
+        - DELETED
+    DepartmentRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+    DepartmentResponse:
+      type: object
+      properties:
+        id:
+          '$ref': '#/components/schemas/UUID'
+        name:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          '$ref': '#/components/schemas/Timestamp'
+    DepartmentPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            '$ref': '#/components/schemas/DepartmentResponse'
+        page:
+          '$ref': '#/components/schemas/PageInfo'
+    WorkspaceRequest:
+      type: object
+      required:
+        - name
+        - isPublic
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        isPublic:
+          type: boolean
+    WorkspaceResponse:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        name:
+          type: string
+        description:
+          type: string
+        isPublic:
+          type: boolean
+        active:
+          type: boolean
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+        memberCount:
+          type: integer
+    WorkspaceSummary:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        name:
+          type: string
+    WorkspacePage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspaceResponse'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    UserSummary:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        enabled:
+          type: boolean
+        department:
+          $ref: '#/components/schemas/DepartmentSummary'
+    WorkspaceMemberResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        workspaceRole:
+          $ref: '#/components/schemas/WorkspaceRole'
+        joinedAt:
+          $ref: '#/components/schemas/Timestamp'
+    WorkspaceMemberRequest:
+      type: object
+      properties:
+        members:
+          type: array
+          items:
+            type: object
+            required:
+              - userId
+              - workspaceRole
+            properties:
+              userId:
+                $ref: '#/components/schemas/UUID'
+              workspaceRole:
+                $ref: '#/components/schemas/WorkspaceRole'
+    WorkspaceMemberListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/WorkspaceMemberResponse'
+    WorkspaceMemberPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspaceMemberResponse'
+        page:
+          $ref: '#/components/schemas/PageInfo'
+    WorkspaceRoleUpdateRequest:
+      type: object
+      required:
+        - workspaceRole
+      properties:
+        workspaceRole:
+          $ref: '#/components/schemas/WorkspaceRole'
+  responses:
+
+    ############################################################
+    # Common Responses
+    ############################################################
+
+    BadRequest:
+
+      description: Invalid request
+
+      content:
+
+        application/problem+json:
+
+          schema:
+
+            $ref: '#/components/schemas/ProblemDetails'
+
+    Unauthorized:
+
+      description: Authentication required
+
+      content:
+
+        application/problem+json:
+
+          schema:
+
+            $ref: '#/components/schemas/ProblemDetails'
+
+    Forbidden:
+
+      description: Access denied
+
+      content:
+
+        application/problem+json:
+
+          schema:
+
+            $ref: '#/components/schemas/ProblemDetails'
+
+    NotFound:
+
+      description: Resource not found
+
+      content:
+
+        application/problem+json:
+
+          schema:
+
+            $ref: '#/components/schemas/ProblemDetails'
+
+    Conflict:
+
+      description: Resource conflict
+
+      content:
+
+        application/problem+json:
+
+          schema:
+
+            $ref: '#/components/schemas/ProblemDetails'
+
+    ValidationError:
+
+      description: Validation failed
+
+      content:
+
+        application/problem+json:
+
+          schema:
+
+            $ref: '#/components/schemas/ProblemDetails'
+
+
+  parameters:
+    UserId:
+
+      in: path
+      name: userId
+      required: true
+      schema:
+        '$ref': '#/components/schemas/UUID'
+    DepartmentId:
+      in: path
+      name: departmentId
+      required: true
+      schema:
+        '$ref': '#/components/schemas/UUID'
+    WorkspaceId:
+      in: path
+      name: workspaceId
+      required: true
+      schema:
+        $ref: '#/components/schemas/UUID'

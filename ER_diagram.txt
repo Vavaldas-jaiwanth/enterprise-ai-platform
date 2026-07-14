@@ -1,0 +1,95 @@
+@startuml
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "USER" as USER {
+    * id : UUID
+    --
+    firstName : String
+    lastName : String
+    email : String <<UNIQUE>>
+    password : String
+    enabled : Boolean
+    mustChangePassword : Boolean
+    createdAt : Timestamp
+    updatedAt : Timestamp
+    departmentId : UUID <<FK>>
+}
+
+entity "ROLE" as ROLE {
+    * id : Integer
+    --
+    name : String <<UNIQUE>>
+    createdAt : Timestamp
+}
+
+entity "USER_ROLE" as USER_ROLE {
+    * id : UUID
+    --
+    userId : UUID <<FK>>
+    roleId : Integer <<FK>>
+    assignedAt : Timestamp
+}
+
+entity "DEPARTMENT" as DEPARTMENT {
+    * id : UUID
+    --
+    name : String <<UNIQUE>>
+    description : String
+    active : Boolean
+    createdAt : Timestamp
+    updatedAt : Timestamp
+}
+
+entity "WORKSPACE" as WORKSPACE {
+    * id : UUID
+    --
+    name : String <<UNIQUE>>
+    description : String
+    isPublic : Boolean
+    active : Boolean
+    createdAt : Timestamp
+    updatedAt : Timestamp
+}
+
+entity "WORKSPACE_ROLE" as WORKSPACE_ROLE {
+    * id : Integer
+    --
+    name : String <<UNIQUE>>
+    createdAt : Timestamp
+}
+
+entity "WORKSPACE_MEMBER" as WORKSPACE_MEMBER {
+    * id : UUID
+    --
+    workspaceId : UUID <<FK>>
+    userId : UUID <<FK>>
+    workspaceRoleId : Integer <<FK>>
+    joinedAt : Timestamp
+}
+
+entity "REFRESH_TOKEN" as REFRESH_TOKEN {
+    * id : UUID
+    --
+    token : String <<UNIQUE>>
+    userId : UUID <<FK>>
+    expiresAt : Timestamp
+    revoked : Boolean
+    createdAt : Timestamp
+}
+
+'===========================
+' Relationships
+'===========================
+
+DEPARTMENT ||--o{ USER : employs
+
+USER ||--o{ USER_ROLE : assigned
+ROLE ||--o{ USER_ROLE : grants
+
+USER ||--o{ WORKSPACE_MEMBER : joins
+WORKSPACE ||--o{ WORKSPACE_MEMBER : contains
+WORKSPACE_ROLE ||--o{ WORKSPACE_MEMBER : has_role
+USER ||--|| REFRESH_TOKEN : owns
+@enduml

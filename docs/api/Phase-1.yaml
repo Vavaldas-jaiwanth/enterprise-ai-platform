@@ -191,7 +191,7 @@ paths:
             application/json:
 
               schema:
-                $ref: '#/components/schemas/CurrentUserResponse'
+                $ref: '#/components/schemas/AuthenticatedUser'
 
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1076,7 +1076,7 @@ components:
       format: uuid
       example: "ebeb7b3b-f0e8-4b44-b16d-d5bb3a7b6401"
 
-    Timestamp:
+    Instant:
       type: string
       format: date-time
       example: "2026-07-11T09:45:30Z"
@@ -1161,8 +1161,8 @@ components:
         instance:
           type: string
 
-        timestamp:
-          $ref: '#/components/schemas/Timestamp'
+        Instant:
+          $ref: '#/components/schemas/Instant'
 
         path:
           type: string
@@ -1259,7 +1259,7 @@ components:
 
       properties:
 
-        accessToken:
+        authToken:
 
           type: string
 
@@ -1267,24 +1267,18 @@ components:
 
           type: string
 
-        tokenType:
-
-          type: string
-
-          example: Bearer
-
         expiresIn:
 
           type: integer
 
-          example: 900
-
-    ##########################################################
-    # Refresh Response
-    ##########################################################
-
         mustChangePassword:
+
           type: boolean
+
+        user:
+
+          $ref: '#/components/schemas/AuthenticatedUser'
+
     RefreshTokenResponse:
 
       type: object
@@ -1295,15 +1289,9 @@ components:
 
           type: string
 
-        tokenType:
+        refreshToken:
 
           type: string
-
-        expiresIn:
-
-          type: integer
-
-          example: 900
 
     ##########################################################
     # User Response
@@ -1354,13 +1342,13 @@ components:
 
         createdAt:
 
-          $ref: '#/components/schemas/Timestamp'
+          $ref: '#/components/schemas/Instant'
 
     ############################################################
     # Department Summary
     ############################################################
 
-    CurrentUserResponse:
+    AuthenticatedUser:
 
       type: object
 
@@ -1385,9 +1373,14 @@ components:
         department:
 
           '$ref': '#/components/schemas/DepartmentSummary'
-        systemRole:
 
-          $ref: '#/components/schemas/UserRole'
+        systemRoles:
+
+          type: array
+
+          items:
+
+            type: string
 
         workspaces:
 
@@ -1541,7 +1534,7 @@ components:
         active:
           type: boolean
         createdAt:
-          '$ref': '#/components/schemas/Timestamp'
+          '$ref': '#/components/schemas/Instant'
     DepartmentPage:
       type: object
       properties:
@@ -1580,7 +1573,7 @@ components:
         active:
           type: boolean
         createdAt:
-          $ref: '#/components/schemas/Timestamp'
+          $ref: '#/components/schemas/Instant'
         memberCount:
           type: integer
     WorkspaceSummary:
@@ -1623,7 +1616,7 @@ components:
         workspaceRole:
           $ref: '#/components/schemas/WorkspaceRole'
         joinedAt:
-          $ref: '#/components/schemas/Timestamp'
+          $ref: '#/components/schemas/Instant'
     WorkspaceMemberRequest:
       type: object
       properties:

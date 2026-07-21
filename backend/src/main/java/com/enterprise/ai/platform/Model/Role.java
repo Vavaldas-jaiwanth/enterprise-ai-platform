@@ -1,9 +1,12 @@
 package com.enterprise.ai.platform.Model;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -12,7 +15,8 @@ import jakarta.persistence.Table;
 public class Role {
 
     @Id
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(unique = true, nullable = false)
     private String name;
@@ -24,18 +28,18 @@ public class Role {
 
     }
 
-    public Role(Long id, String name, Instant createdAt)
+    public Role(UUID id, String name, Instant createdAt)
     {
         this.id = id;
         this.name = name;
         this.createdAt = createdAt;
     }
     
-    public Long getId() { return id; }
+    public UUID getId() { return id; }
     public String getName() { return name; }
     public Instant getCreatedAt() { return createdAt; }
 
-    public void setId(Long id) { this.id = id; }
+    public void setId(UUID id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

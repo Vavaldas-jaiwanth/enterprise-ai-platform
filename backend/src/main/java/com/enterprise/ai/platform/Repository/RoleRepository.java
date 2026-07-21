@@ -8,6 +8,6 @@ import com.enterprise.ai.platform.Model.Role;
 import java.util.Optional;
 
 @Repository
-public interface RoleRepository extends JpaRepository<Role, Long> {
+public interface RoleRepository extends JpaRepository<Role, java.util.UUID> {
     Optional<Role> findByName(String name);
 }

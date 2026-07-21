@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -36,14 +37,20 @@ public class DataSeeder implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Value("${admin.default.email}")
+    private String adminEmail;
+
+    @Value("${admin.default.password}")
+    private String adminPassword;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
         
         // 1. Seed Roles
-        Role superAdminRole = seedRole(1L, "SUPER_ADMIN");
-        Role adminRole = seedRole(2L, "ADMIN");
-        Role userRole = seedRole(3L, "USER");
+        Role superAdminRole = seedRole("SUPER_ADMIN");
+        Role adminRole = seedRole("ADMIN");
+        Role userRole = seedRole("USER");
 
         // 2. Seed a Default Department (Required for User)
         Department defaultDept = departmentRepository.findByName("System")
@@ -58,7 +65,8 @@ public class DataSeeder implements CommandLineRunner {
             });
 
         // 3. Seed Super Admin User
-        String adminEmail = "superadmin@example.com";
+        
+
         Optional<User> existingUser = userRepository.findByEmail(adminEmail);
         
         if (existingUser.isEmpty()) {
@@ -66,7 +74,7 @@ public class DataSeeder implements CommandLineRunner {
             user.setFirstName("Super");
             user.setLastName("Admin");
             user.setEmail(adminEmail);
-            user.setPassword(passwordEncoder.encode("admin123")); // Default password
+            user.setPassword(passwordEncoder.encode(adminPassword)); // Default password
             user.setEnabled(true);
             user.setMustChangePassword(true);
             user.setCreatedAt(Instant.now());
@@ -83,14 +91,14 @@ public class DataSeeder implements CommandLineRunner {
             
             userRoleRepository.save(userRoleMapping);
             
-            System.out.println("Super Admin user created: " + adminEmail + " / admin123");
+            System.out.println("Super Admin user created: " + adminEmail + " / " + adminPassword);
         }
     }
 
-    private Role seedRole(Long id, String name) {
+    private Role seedRole(String name) {
         return roleRepository.findByName(name)
             .orElseGet(() -> {
-                Role role = new Role(id, name, Instant.now());
+                Role role = new Role(null, name, Instant.now());
                 return roleRepository.save(role);
             });
     }

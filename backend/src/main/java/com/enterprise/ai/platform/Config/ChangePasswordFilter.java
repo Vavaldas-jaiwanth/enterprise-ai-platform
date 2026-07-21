@@ -27,6 +27,7 @@ public class ChangePasswordFilter extends OncePerRequestFilter {
 
     @Autowired
     @Qualifier("handlerExceptionResolver")
+    @org.springframework.context.annotation.Lazy
     private HandlerExceptionResolver exceptionResolver;
 
     private final RequestMatcher allowedEndpoints =

@@ -53,11 +53,23 @@ public class DataSeeder implements CommandLineRunner {
         Role userRole = seedRole("USER");
 
         // 2. Seed a Default Department (Required for User)
-        Department defaultDept = departmentRepository.findByName("System")
+        Department defaultDept = departmentRepository.findByName("Administration")
             .orElseGet(() -> {
                 Department dept = new Department();
                 dept.setName("Administration");
                 dept.setDescription("System Administration Department");
+                dept.setActive(true);
+                dept.setCreatedAt(Instant.now());
+                dept.setUpdatedAt(Instant.now());
+                return departmentRepository.save(dept);
+            });
+
+        // Seed an extra department for testing
+        departmentRepository.findByName("Engineering")
+            .orElseGet(() -> {
+                Department dept = new Department();
+                dept.setName("Engineering");
+                dept.setDescription("Software Engineering Department");
                 dept.setActive(true);
                 dept.setCreatedAt(Instant.now());
                 dept.setUpdatedAt(Instant.now());

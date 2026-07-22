@@ -8,8 +8,10 @@ import org.springframework.stereotype.Repository;
 
 import com.enterprise.ai.platform.Model.User;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 @Repository
-public interface UserRepository extends JpaRepository<User,UUID>{ 
+public interface UserRepository extends JpaRepository<User,UUID>, JpaSpecificationExecutor<User> { 
 
     Optional<User> findByEmail(String email);
 }

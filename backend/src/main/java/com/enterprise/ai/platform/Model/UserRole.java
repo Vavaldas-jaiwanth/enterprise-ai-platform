@@ -38,6 +38,18 @@ public class UserRole {
     @Column(nullable = false, updatable = false)
     private Instant assignedAt;
 
+    public UserRole ()
+    {
+
+    }
+
+    public UserRole (User user,Role role)
+    {
+        this.user=user;
+        this.role=role;
+        this.assignedAt=Instant.now();
+    }
+
     public UUID getId() {
         return id;
     }

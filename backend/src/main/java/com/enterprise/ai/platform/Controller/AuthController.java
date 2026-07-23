@@ -71,6 +71,12 @@ public class AuthController {
         return ResponseEntity.ok("Logout successful");
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody java.util.Map<String, String> request) {
+        authService.forgotPassword(request.get("email"));
+        return ResponseEntity.ok("If that email address exists in our system, the password has been reset to the default.");
+    }
+
     @PutMapping("/change-password")
     public ResponseEntity<String> changePassword(@RequestBody com.enterprise.ai.platform.DTO.ChangePasswordRequestDTO request)
     {

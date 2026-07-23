@@ -36,7 +36,8 @@ public class ChangePasswordFilter extends OncePerRequestFilter {
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/logout"),
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/refresh"),
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/me"),
-            PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/login")
+            PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/login"),
+            PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/forgot-password")
         );
 
     @Override

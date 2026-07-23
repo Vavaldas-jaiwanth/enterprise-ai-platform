@@ -47,6 +47,18 @@ public class AuthService {
     @Autowired
     private WorkspaceMemberRepository workspaceMemberRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${app.default.password}")
+    private String defaultPassword;
+
+    @org.springframework.transaction.annotation.Transactional
+    public void forgotPassword(String email) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            user.setPassword(passwordEncoder.encode(defaultPassword));
+            user.setMustChangePassword(true);
+            userRepository.save(user);
+        });
+    }
+
     @org.springframework.transaction.annotation.Transactional
     public LoginResponseDTO login(LoginRequestDTO request) {
 
